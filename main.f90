@@ -95,8 +95,7 @@ program main
         else
             z_extr(3) = 0
         end if
-
-
+        print *, " "
         print '(a)', "NERAZPOKAN PREREZ"
 
         print '(a)', "      1. Deformacijska ravnina"
@@ -121,6 +120,8 @@ program main
             print * , (def_plc(1) - def_plc(2) * z_extr(1:2))*e_c
         end if
 
+        print *, " "
+       
     end block
 
 
