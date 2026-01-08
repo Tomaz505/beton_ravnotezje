@@ -142,4 +142,7 @@ program main
 
         end do
     end block
+
+    print'(a)', "Pritisni Enter"
+    read *,
 end program
