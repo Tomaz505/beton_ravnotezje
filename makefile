@@ -7,7 +7,7 @@ SOURCES = makefile\
 lnx: $(SOURCES)
 	gfortran -c modul.f90
 	gfortran -c main.f90
-	gfortran -o main main.o modul.o
+	gfortran -o main.out main.o modul.o
 	rm main.o modul.o rutine.mod
 
 
