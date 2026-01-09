@@ -1,7 +1,7 @@
 program main
     integer, parameter :: dp = selected_real_kind(15,307)
     real(dp), parameter :: pi = 3.141592654
-    integer :: n_c, n_a, n_p, u  !st vozlisc, stevilo armaturnih palic, stevilo kablov
+    integer :: n_c, n_a, n_p, u, analiza  !st vozlisc, stevilo armaturnih palic, stevilo kablov
 
     real(dp) :: f_c, e_c, phi_cr
     real(dp) :: f_s, e_s
@@ -13,20 +13,22 @@ program main
     real(dp) :: def_pl(3), eps_sh(3)
 
     open(newunit = u, file = "in.txt",status = "old")
-    read(u,*) med,ned,n_c,n_s,n_p
+    read(u,*) analiza, med,ned,n_c,n_s,n_p
     close(u)
 
     if (np == 0) then
         allocate(xy_c(2,n_c), xy_s(2,n_s), r_s(n_s))
         open(newunit = u, file = "in.txt",status = "old")
-            read(u,*) med,ned,n_c,n_s,n_p,f_c,e_c,phi_cr,f_s,e_s,xy_c,eps_sh,xy_s,r_s
+            read(u,*) analiza,med,ned,n_c,n_s,n_p,f_c,e_c,phi_cr,f_s,e_s,xy_c,eps_sh,xy_s,r_s
         close(u)
     else
         allocate(xy_c(2,n_c), xy_s(2,n_s),xy_p(2,n_p), r_s(n_s), r_p(n_p),p_p(n_p))
         open(newunit = u, file = "in.txt",status = "old")
-            read(u,*) med,ned,n_c,n_s,n_p,f_c,e_c,phi_cr,f_s,e_s,xy_c,eps_sh,xy_s,r_s,f_p,e_p,xy_p,r_p,p_p
+            read(u,*) analiza, med,ned,n_c,n_s,n_p,f_c,e_c,phi_cr,f_s,e_s,xy_c,eps_sh,xy_s,r_s,f_p,e_p,xy_p,r_p,p_p
         close(u)
     end if
+    !Skladnost koordinatnega sistema
+    eps_sh(2) = -eps_sh(2)
 
 
     !RAČUN KARAKTERISTIK
@@ -121,10 +123,10 @@ program main
         end if
 
         print *, " "
-       
     end block
 
 
+    !RAZPOKAN PREREZ
     block
         real(dp) :: a_crac = 0, i_crac = 0, z_crac(2), def_pl_crac(3)
 
