@@ -1,9 +1,12 @@
 program main
+    use rutine
+
+
     integer, parameter :: dp = selected_real_kind(15,307)
     real(dp), parameter :: pi = 3.141592654
     integer :: n_c, n_a, n_p, u, analiza  !st vozlisc, stevilo armaturnih palic, stevilo kablov
 
-    real(dp) :: f_c, e_c, phi_cr
+    real(dp) :: f_c, e_c, phi_cr,x_area
     real(dp) :: f_s, e_s
     real(dp) :: f_p, e_p
     real(dp) ::  a=0.0_dp, ix=0.0_dp
@@ -27,28 +30,29 @@ program main
             read(u,*) analiza, med,ned,n_c,n_s,n_p,f_c,e_c,phi_cr,f_s,e_s,xy_c,eps_sh,xy_s,r_s,f_p,e_p,xy_p,r_p,p_p
         close(u)
     end if
+
+
+
     !Skladnost koordinatnega sistema
     eps_sh(2) = -eps_sh(2)
+
 
 
     !RAČUN KARAKTERISTIK
     block
         real(dp) :: sx=0.0_dp
-        do i = 1,n_c-1
-            a = a + (xy_c(1,i)*xy_C(2,i+1) - xy_c(1,i+1)*xy_c(2,i))
-            sx = sx + (xy_c(1,i+1)-xy_c(1,i))*(xy_c(2,i)**2 + xy_c(2,i+1)**2+ xy_c(2,i)*xy_c(2,i+1))
-        end do
-        sx = sx/3
-        xy_c(2,:) = xy_c(2,:)+sx/a
-        xy_s(2,:) = xy_s(2,:)+sx/a
-        if (n_p == 0) then
-        else
+
+        call area_n(xy_c,n_c,a,0)
+        call area_n(xy_c,n_c,sx,1)
+
+        xy_c(2,:) = xy_c(2,:)-sx/a
+        xy_s(2,:) = xy_s(2,:)-sx/a
+
+        if (n_p /= 0) then
             xy_p(2,:) = xy_p(2,:) - sx/a
         end if
 
-        do i = 1,n_c-1
-            ix = ix+ (xy_c(1,i)*xy_c(2,i+1) - xy_c(1,i+1)*xy_c(2,i))*(xy_c(2,i)**2 + xy_c(2,i+1)**2+ xy_c(2,i)*xy_c(2,i+1))/6
-        end do
+        call area_n(xy_c,n_c,ix,2)
 
     end block
 
@@ -82,6 +86,8 @@ program main
         def_pl(1:2) = (/c_mat(2,2)*f_vec(1)-c_mat(1,2)*f_vec(2) , -c_mat(1,2)*f_vec(1)+c_mat(1,1)*f_vec(2)/) /(c_mat(1,1)*c_mat(2,2)-c_mat(1,2)**2)
         def_pl(3) = 0
     end block
+
+
 
     !PRINTANJE REZULTATOV
     block
