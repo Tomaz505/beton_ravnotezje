@@ -13,7 +13,6 @@
 0,...
 
 
-
 Podatke se vnaša samo za polovico simetričnega prereza (pazi na armaturo na sredini ker se steje dvakrat)
 
 indeks                          analiza(1-li.el.nerazpokan, 2-lin.el.razpokan, 3-nelin.razpokan)
