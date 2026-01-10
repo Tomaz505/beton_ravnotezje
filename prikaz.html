@@ -2,22 +2,27 @@
 <html>
 <head>
     <meta charset="UTF-8">
+     <!--   <meta http-equiv="refresh" content="10">  -->
     <title>Analiza betonskega prereza</title>
-    <script src="https://cdn.plot.ly/plotly-3.3.1.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.3.1.js"></script>
     <script src="mapa/out.js"></script>
 </head>
 <body>
 
 <h2>Analiza betonskega prereza</h2>
-Za izbrane podatke imamo naslednje deformacijske ravnine.
+Diagram prereza.
 
-<div id="chart" style="width:400px;height:400px;"></div>
+
+<div id="chart" style="width:800px;height:400px;"></div>
+
+
 
 <script>
 // Parse first dataset
 const lines = sec_coor.trim().split(/\r?\n/);
 const xData = [];
 const yData = [];
+
 
 lines.forEach(line => {
     const parts = line.trim().split(/\s+/);
@@ -26,27 +31,59 @@ lines.forEach(line => {
         yData.push(parseFloat(parts[1]));
     }
 });
-console.log(xData)
+
 
 // Plotly traces
-const trace1 = {
+var trace1 = {
     x: xData,
     y: yData,
     mode: 'lines',
+    name: 'Prerez',
+    line: { width: 1, color: 'blue' }
+};
+
+var trace2 = {
+
+    x: [0.92,-0.87],
+
+    y: [-27.5,  27.5],
+
+    xaxis: 'x2',
+    yaxis: 'y2',
     name: 'ε_c',
-    line: { width: 2, color: 'blue' }
+    mode: 'lines',
+    line: { width: 2, color: 'red' }
+
+};
+
+var trace3 = {
+
+    x: [-0.92,0.87],
+    y: [-27.5,  27.5],
+
+    xaxis:'x2',
+    yaxis: 'y2',
+    name: 'ε_s',
+    mode: 'lines',
+    line: { width: 2, color: 'gray' }
+
 };
 
 // Layout
-const layout = {
+var layout = {
     xaxis: { title: 'y',scaleratio: 1 },
-    yaxis: { title: 'z',autorange:'reversed',scaleratio: 1 },
-    margin: { t: 20 }
+    yaxis: { title: 'z',scaleratio: 1 },
+    xaxis2: { title: 'e',scaleratio: 1 },
+    yaxis2: { title: 'z',scaleratio: 1 ,},
+    margin: { t: 10 },
+    grid: {rows:1,columns:2, pattern: 'independent'}
 };
 
 // Render
-Plotly.newPlot('chart', [trace1], layout);
+Plotly.newPlot('chart', [trace1,trace2,trace3], layout);
 </script>
+
+
 
 </body>
 </html>
