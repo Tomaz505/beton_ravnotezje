@@ -25,5 +25,26 @@ module rutine
     end subroutine
 
 
+    subroutine write_js(xy,n)
+        !n-stevilo vozlisc
+        !deg-stopnja potence y^deg v integralu
+        !a - vhodna količina
+        !xy - koordinate vozlisc
+        integer :: n
+        real(dp) :: xy(:,:)
+
+        open (unit = 1,file = "mapa/out.js",status = "old")
+        write(1,*) "const sec_coor = `"
+        do i=1,n
+            write(1,*) xy(:,i)
+        end do
+        do i=n-1,1,-1
+            write(1,*) (/ -xy(1,i),xy(2,i)/)
+        end do
+        write(1,*) "`;"
+        close(1)
+    end subroutine
+
+
 
 end module

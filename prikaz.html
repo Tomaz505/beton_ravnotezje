@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Analiza betonskega prereza</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.3.1.min.js"></script>
     <script src="mapa/out.js"></script>
 </head>
 <body>
@@ -11,34 +11,22 @@
 <h2>Analiza betonskega prereza</h2>
 Za izbrane podatke imamo naslednje deformacijske ravnine.
 
-<div id="chart" style="width:600px;height:300px;"></div>
+<div id="chart" style="width:400px;height:400px;"></div>
 
 <script>
 // Parse first dataset
-const lines = fortranData.trim().split(/\r?\n/);
+const lines = sec_coor.trim().split(/\r?\n/);
 const xData = [];
 const yData = [];
 
 lines.forEach(line => {
     const parts = line.trim().split(/\s+/);
     if (parts.length === 2) {
-        xData.push(parseFloat(parts[1]));
-        yData.push(parseFloat(parts[0]));
+        xData.push(parseFloat(parts[0]));
+        yData.push(parseFloat(parts[1]));
     }
 });
-
-// Parse second dataset
-const lines1 = fortranData1.trim().split(/\r?\n/);
-const xData1 = [];
-const yData1 = [];
-
-lines1.forEach(line => {
-    const parts = line.trim().split(/\s+/);
-    if (parts.length === 2) {
-        xData1.push(parseFloat(parts[1]));
-        yData1.push(parseFloat(parts[0]));
-    }
-});
+console.log(xData)
 
 // Plotly traces
 const trace1 = {
@@ -49,23 +37,15 @@ const trace1 = {
     line: { width: 2, color: 'blue' }
 };
 
-const trace2 = {
-    x: xData1,
-    y: yData1,
-    mode: 'lines',
-    name: 'ε_s',
-    line: { width: 2, color: 'red' }
-};
-
 // Layout
 const layout = {
-    xaxis: { title: 'ε' },
-    yaxis: { title: 'z',autorange:'reversed' },
+    xaxis: { title: 'y',scaleratio: 1 },
+    yaxis: { title: 'z',autorange:'reversed',scaleratio: 1 },
     margin: { t: 20 }
 };
 
 // Render
-Plotly.newPlot('chart', [trace1, trace2], layout);
+Plotly.newPlot('chart', [trace1], layout);
 </script>
 
 </body>

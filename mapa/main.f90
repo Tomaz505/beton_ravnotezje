@@ -56,6 +56,9 @@ program main
 
     end block
 
+    !Slika prereza
+    call write_js(xy_c,n_c)
+
 
 
     !RAČUN NERAZPOKANEGA PREREZA
@@ -150,7 +153,4 @@ program main
 
         end do
     end block
-
-    print'(a)', "Pritisni Enter"
-    read *,
 end program
