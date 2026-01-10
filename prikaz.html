@@ -18,6 +18,51 @@ Diagram prereza.
 
 
 <script>
+const fileToWatch = "mapa/out.js"; // <- your file path
+let lastHash = null;
+
+async function checkForChanges() {
+  try {
+    console.log("Checking for changes...");
+
+    const response = await fetch(fileToWatch, { cache: "no-store" });
+    if (!response.ok) {
+      console.error("Failed to fetch file:", response.status, response.statusText);
+      return;
+    }
+
+    const text = await response.text();
+    const hash = btoa(text); // quick-and-dirty "hash"
+
+    if (lastHash === null) {
+      console.log("Initial hash set");
+      lastHash = hash;
+      return;
+    }
+
+    if (hash !== lastHash) {
+      console.log("Change detected, reloading...");
+      location.reload();
+    } else {
+      console.log("No change");
+    }
+
+    lastHash = hash;
+  } catch (err) {
+    console.error("Error checking file:", err);
+  }
+}
+
+// run every 3 seconds
+setInterval(checkForChanges, 500);
+</script>
+
+
+
+
+
+
+<script>
 // Parse first dataset
 const lines = sec_coor.trim().split(/\r?\n/);
 const xData = [];
@@ -34,18 +79,17 @@ const lines_a = a_coor.trim().split(/\r?\n/);
 const xData_a = [];
 const yData_a = [];
 const aData_a = [];
+const aData_af = [];
 lines_a.forEach(line => {
     const parts = line.trim().split(/\s+/);
     if (parts.length === 3) {
         xData_a.push(parseFloat(parts[0]));
         yData_a.push(parseFloat(parts[1]));
-        aData_a.push(parts[2].slice(0,5));
+        aData_a.push(parseFloat(parts[2].slice(0,5)))
+        aData_af.push(6*parseFloat(parts[2].slice(0,5)));
     }
 });
 
-console.log(xData_a)
-console.log(yData_a)
-console.log(aData_a)
 
 
 
@@ -91,10 +135,11 @@ var trace2 = {
     y: yData_a,
     mode: 'markers',
     type: 'scatter',
-    name: 'R',
+    name: 'd',
     text: aData_a,
-    marker: { size: 12,color:'gray' },
+    marker: { size: aData_af ,color:'orange',  opacity: 0.5,},
     showlegend:false
+
 };
 
 var trace3 = {

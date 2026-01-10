@@ -31,14 +31,12 @@ program main
         close(u)
     end if
 
-
-
     !Skladnost koordinatnega sistema
     eps_sh(2) = -eps_sh(2)
 
 
 
-    !RAČUN KARAKTERISTIK
+    !RAČUN KARAKTERISTIK IN PREMIK TEZISCA V IZODISCE
     block
         real(dp) :: sx=0.0_dp
 
@@ -93,29 +91,48 @@ program main
 
     !PRINTANJE REZULTATOV
     block
-        real(dp) ::  def_plc(3), z_extr(3)
+        real(dp) ::  def_plc(3), z_extr(2)
         def_plc(:) = 0
         z_extr(1) = minval(xy_c(2,:))
         z_extr(2) = maxval(xy_c(2,:))
 
         def_plc = (def_pl-eps_sh)/(1+phi_cr)
 
-        if (eps_sh(3) /= 0) then
-            z_extr(3) = (-eps_sh(2)/2/eps_sh(3))
-        else
-            z_extr(3) = 0
-        end if
-
         print*," "
         print*,"    Račun končan."
         print*," "
 
-
         ! dopolni če je eps_sh(3) /= 0
-        call write_js(xy_c,n_c,xy_s,n_s,r_s,(def_plc(1)-def_plc(2)*z_extr(1:2)), (def_pl(1)-def_pl(2)*z_extr(1:2)), z_extr(1:2))
+        call write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr)
 
     end block
 
+
+    !NERAZPOKAN DEL PREREZA MED ymin IN ymax
+    block
+        real(dp) :: xy_eff(2,3*n_c), z_crack(2)
+
+
+        if (eps_sh(3) == 0) then
+            !racun ene nicle deformacij
+
+
+
+        else
+            !test za stevilo nicel b**2-4*a*c >,<,= 0
+            !racun ene oz. dveh nicel
+            z_crac(:) = -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
+
+
+
+        end if
+
+
+
+
+        call eff_section(xy_c,n_c,-20.0_dp,12.0_dp,xy_eff)
+
+    end block
 
 
     !RAZPOKAN PREREZ

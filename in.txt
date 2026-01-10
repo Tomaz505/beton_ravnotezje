@@ -5,7 +5,7 @@
 50,  20000.0
 0, 0,   12.5 ,0,  12.5,55,  0,55
 -0.00046, 0 ,0
-8, 5.7,8,50.5
+8, 5.7,8,50
 2.9933, 1.2
 0, 0
 0, 0,...
@@ -21,7 +21,7 @@ nc, ns, np                      stevilo vozlisc prereza, stevilo armaturnih pali
 fc,     Ec,     phi
 fs,     Es
 x1,y1,x2,y2,...,xnc,ync         koordinate vozlisc prereza
-esh0,esh1,esh2                  koeficienti kvadratne parabole krčenja/temperature (z=0 v težišču)
+esh0,esh1,esh2                  koeficienti kvadratne parabole def. reologije (z=0 v težišču)
 xs1,ys1,...,xsns,ysns           koordinate armaturnih palic
 ds1,...,dsns                    premeri palic
 fp,     Ep
