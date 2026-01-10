@@ -56,8 +56,7 @@ program main
 
     end block
 
-    !Slika prereza
-    call write_js(xy_c,n_c)
+
 
 
 
@@ -106,33 +105,17 @@ program main
         else
             z_extr(3) = 0
         end if
-        print *, " "
-        print '(a)', "NERAZPOKAN PREREZ"
 
-        print '(a)', "      1. Deformacijska ravnina"
-        print * , def_pl(1:2)
-        print *, " "
-
-        print '(a)', "      2. Napetosti v armaturnih palicah"
-        print * , (def_pl(1) - def_pl(2) * xy_s(2,:))*e_s
-        print *, " "
-
-        print '(a)', "      3. Napetostne deformacije"
-        print *, def_plc
-        print *, " "
+        print*," "
+        print*,"    Račun končan."
+        print*," "
 
 
-        if ((eps_sh(3) /= 0) .and. ((z_extr(3) > z_extr(1)) .and. (z_extr(3) < z_extr(2)) )) then
-            print '(a)', "      4. Napetosti v betonu     (spodaj, zgoraj, teme parabole)"
-            print *, z_extr
-            print * , (def_plc(1) - def_plc(2) * z_extr)*e_c
-        else
-            print '(a)', "      4. Napetosti v betonu     (spodaj, zgoraj)"
-            print * , (def_plc(1) - def_plc(2) * z_extr(1:2))*e_c
-        end if
+        ! dopolni če je eps_sh(3) /= 0
+        call write_js(xy_c,n_c,xy_s,n_s,r_s,(def_plc(1)-def_plc(2)*z_extr(1:2)), (def_pl(1)-def_pl(2)*z_extr(1:2)), z_extr(1:2))
 
-        print *, " "
     end block
+
 
 
     !RAZPOKAN PREREZ

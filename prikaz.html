@@ -22,13 +22,56 @@ Diagram prereza.
 const lines = sec_coor.trim().split(/\r?\n/);
 const xData = [];
 const yData = [];
-
-
 lines.forEach(line => {
     const parts = line.trim().split(/\s+/);
     if (parts.length === 2) {
         xData.push(parseFloat(parts[0]));
         yData.push(parseFloat(parts[1]));
+    }
+});
+
+const lines_a = a_coor.trim().split(/\r?\n/);
+const xData_a = [];
+const yData_a = [];
+const aData_a = [];
+lines_a.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 3) {
+        xData_a.push(parseFloat(parts[0]));
+        yData_a.push(parseFloat(parts[1]));
+        aData_a.push(parts[2].slice(0,5));
+    }
+});
+
+console.log(xData_a)
+console.log(yData_a)
+console.log(aData_a)
+
+
+
+const lines_epsc = eps_c.trim().split(/\r?\n/);
+const xData_c = [];
+const yData_c = [];
+lines_epsc.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        xData_c.push(parseFloat(parts[0]));
+        yData_c.push(parseFloat(parts[1]));
+    }
+});
+
+
+
+
+const lines_epss = eps_s.trim().split(/\r?\n/);
+const xData_s = [];
+const yData_s = [];
+
+lines_epss.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        xData_s.push(parseFloat(parts[0]));
+        yData_s.push(parseFloat(parts[1]));
     }
 });
 
@@ -39,15 +82,24 @@ var trace1 = {
     y: yData,
     mode: 'lines',
     name: 'Prerez',
-    line: { width: 1, color: 'blue' }
+    line: { width: 1, color: 'blue' },
+    showlegend:false
 };
 
 var trace2 = {
+    x: xData_a,
+    y: yData_a,
+    mode: 'markers',
+    type: 'scatter',
+    name: 'R',
+    text: aData_a,
+    marker: { size: 12,color:'gray' },
+    showlegend:false
+};
 
-    x: [0.92,-0.87],
-
-    y: [-27.5,  27.5],
-
+var trace3 = {
+    x: xData_c,
+    y: yData_c,
     xaxis: 'x2',
     yaxis: 'y2',
     name: 'ε_c',
@@ -56,16 +108,16 @@ var trace2 = {
 
 };
 
-var trace3 = {
+var trace4 = {
 
-    x: [-0.92,0.87],
-    y: [-27.5,  27.5],
+    x: xData_s,
+    y: yData_s,
 
     xaxis:'x2',
     yaxis: 'y2',
     name: 'ε_s',
     mode: 'lines',
-    line: { width: 2, color: 'gray' }
+    line: { width: 2, color: 'green' }
 
 };
 
@@ -73,14 +125,12 @@ var trace3 = {
 var layout = {
     xaxis: { title: 'y',scaleratio: 1 },
     yaxis: { title: 'z',scaleratio: 1 },
-    xaxis2: { title: 'e',scaleratio: 1 },
-    yaxis2: { title: 'z',scaleratio: 1 ,},
     margin: { t: 10 },
     grid: {rows:1,columns:2, pattern: 'independent'}
 };
 
 // Render
-Plotly.newPlot('chart', [trace1,trace2,trace3], layout);
+Plotly.newPlot('chart', [trace1,trace2,trace3,trace4], layout);
 </script>
 
 
