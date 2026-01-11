@@ -110,11 +110,48 @@ program main
 
     !NERAZPOKAN DEL PREREZA MED ymin IN ymax
     block
-        real(dp) :: xy_eff(2,3*n_c), z_crack(2)
+        real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), z_range(2), jac_eq(2,2), f_eq(2)
+
+        real(dp) :: i0,i1,i2,i3
 
 
+        z_range(:) = 0
+        z_extr(1) = minval(xy_c(2,:))
+        z_extr(2) = maxval(xy_c(2,:))
+
+        de_pl_crac = def_pl
         if (eps_sh(3) == 0) then
             !racun ene nicle deformacij
+
+            !
+            !do while
+            !   i0 = 0
+            !   i1 = 0
+            !   i2 = 0
+            !   i3 = 0
+
+            !   !dolocitev z koordinate razpoke preveri predznak kappa
+            !   z_crac(:) == -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
+            !   if ((z_crac(1) > z_extr(1)) .and. (z_crac(1) < z_extr(2)) then
+            !       if (def_pl_crac(2) >0) then
+            !           z_range = (/z_crac(1),z_extr(2)+1/)
+            !       else if (def_pl_crac(2) < 0)
+            !            z_range = (/z_extr(1)-1,z_crac(1)/)
+            !    else
+            !        zrange = (/z_extr(1)-1,z_extr(2)+1/)
+            !   end if
+            !   call eff_section(xy_c,n_c,z_range(1),z_range(2),xy_eff)
+            !
+            !   !Racun momentov (integral y po mnogokotniku) rabim samo i0, i1 in i2
+            !   i0 = area_n(xy_eff,2*n_c,i0,0)
+            !   i1 = area_n(xy_eff,2*n_c,i1,0)
+            !   i2 = area_n(xy_eff,2*n_c,i2,0)
+            !  !i3 = area_n(xy_eff,2*n_c,i3,0)
+            !
+
+            !
+            !end do
+            !
 
 
 

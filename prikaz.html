@@ -13,10 +13,13 @@
 Diagram prereza.
 
 
-<div id="chart" style="width:800px;height:400px;"></div>
+<div id="chart" style="width:800px;height:800px;"></div>
 
-
-
+<!--  Skripta za preverjanje sprememb na out.js vsake 0.5s
+python3 -m http.server 8000
+odpri v brskalniku:
+http://localhost:8000/prikaz.html-->
+<!--
 <script>
 const fileToWatch = "mapa/out.js"; // <- your file path
 let lastHash = null;
@@ -56,8 +59,7 @@ async function checkForChanges() {
 // run every 3 seconds
 setInterval(checkForChanges, 500);
 </script>
-
-
+-->
 
 
 
@@ -137,7 +139,7 @@ var trace2 = {
     type: 'scatter',
     name: 'd',
     text: aData_a,
-    marker: { size: aData_af ,color:'orange',  opacity: 0.5,},
+    marker: { size: aData_af ,color:'orange',  opacity: 0.5},
     showlegend:false
 
 };
@@ -168,9 +170,11 @@ var trace4 = {
 
 // Layout
 var layout = {
-    xaxis: { title: 'y',scaleratio: 1 },
-    yaxis: { title: 'z',scaleratio: 1 },
-    margin: { t: 10 },
+    xaxis: { title: 'y',scaleratio: 1, tickmode: 'array', tickvals: xData.concat(xData_a),tickangle: -90 },
+    yaxis: {range: [Math.min(...yData),Math.max(...yData)], title: 'z',scaleratio: 1, tickmode: 'array', tickvals: yData.concat(yData_a) },
+    xaxis2: {tickangle: -90,tickformat: ".3e"},
+    yaxis2: {range: [Math.min(...yData),Math.max(...yData)],  tickmode: 'array', tickvals: yData.concat(yData_a)  },
+    margin: { t: 20 },
     grid: {rows:1,columns:2, pattern: 'independent'}
 };
 
