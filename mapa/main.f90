@@ -119,7 +119,7 @@ program main
         z_extr(1) = minval(xy_c(2,:))
         z_extr(2) = maxval(xy_c(2,:))
 
-        de_pl_crac = def_pl
+        def_pl_crac = def_pl
         if (eps_sh(3) == 0) then
             !racun ene nicle deformacij
 
@@ -158,7 +158,7 @@ program main
         else
             !test za stevilo nicel b**2-4*a*c >,<,= 0
             !racun ene oz. dveh nicel
-            z_crac(:) = -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
+            !z_crac(:) = -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
 
 
 
