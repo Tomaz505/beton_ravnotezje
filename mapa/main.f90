@@ -36,6 +36,7 @@ program main
 
 
 
+
     !RAČUN KARAKTERISTIK IN PREMIK TEZISCA V IZODISCE
     block
         real(dp) :: sx=0.0_dp
@@ -56,15 +57,32 @@ program main
 
 
 
+    goto (10, 20), analiza
+
+
+
+    !PRINTANJE REZULTATOV
+100 block
+        real(dp) ::  def_plc(3), z_extr(2)
+        def_plc(:) = 0
+        z_extr(1) = minval(xy_c(2,:))
+        z_extr(2) = maxval(xy_c(2,:))
+
+        def_plc = (def_pl-eps_sh)/(1+phi_cr)
+
+        call write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+
+        goto 110
+    end block !-> 110
+
+
 
 
     !RAČUN NERAZPOKANEGA PREREZA
-    block
+ 10 block
         real(dp) :: c_mat(2,2), f_vec(2)
         f_vec = (/ned, med/)
         c_mat(:,:) = 0
-
-        !print*, eps_sh,a,ix,e_c
 
         do i =1,n_s
             c_mat(1,2) = c_mat(1,2) - 2*e_s*xy_s(2,i)*pi/4 *r_s(i)**2
@@ -80,114 +98,80 @@ program main
         f_vec(2) = f_vec(2) + eps_sh(3)*ix*e_c/(1+phi_cr)
 
 
-        !print*, c_mat
-        !print*, f_vec
-
         def_pl(1:2) = (/c_mat(2,2)*f_vec(1)-c_mat(1,2)*f_vec(2) , -c_mat(1,2)*f_vec(1)+c_mat(1,1)*f_vec(2)/) /(c_mat(1,1)*c_mat(2,2)-c_mat(1,2)**2)
         def_pl(3) = 0
-    end block
+
+        goto 100 !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+    end block !-> 100
 
 
 
-    !PRINTANJE REZULTATOV
-    block
-        real(dp) ::  def_plc(3), z_extr(2)
-        def_plc(:) = 0
+
+    !RACUN RAZPOKANEGA PREREZA
+20  block
+        real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2)
+        real(dp) :: i0,i1,i2,i3,eps_h,kapa_h
+
+        !korak diference
+        eps_h  = 2.0_dp**(-25.0_dp)
+        kapa_h = 2.0_dp**(-25.0_dp)
+
         z_extr(1) = minval(xy_c(2,:))
         z_extr(2) = maxval(xy_c(2,:))
 
-        def_plc = (def_pl-eps_sh)/(1+phi_cr)
-
-        print*," "
-        print*,"    Račun končan."
-        print*," "
-
-        ! dopolni če je eps_sh(3) /= 0
-        call write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr)
-
-    end block
-
-
-    !NERAZPOKAN DEL PREREZA MED ymin IN ymax
-    block
-        real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), z_range(2), jac_eq(2,2), f_eq(2)
-
-        real(dp) :: i0,i1,i2,i3
-
-
-        z_range(:) = 0
-        z_extr(1) = minval(xy_c(2,:))
-        z_extr(2) = maxval(xy_c(2,:))
-
-        def_pl_crac = def_pl
+        def_pl_crac = (/0.0_dp,0.00001_dp,0.0_dp/)!def_pl
         if (eps_sh(3) == 0) then
-            !racun ene nicle deformacij
 
-            !
-            !do while
-            !   i0 = 0
-            !   i1 = 0
-            !   i2 = 0
-            !   i3 = 0
+            do k1 = 1,10
 
-            !   !dolocitev z koordinate razpoke preveri predznak kappa
-            !   z_crac(:) == -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
-            !   if ((z_crac(1) > z_extr(1)) .and. (z_crac(1) < z_extr(2)) then
-            !       if (def_pl_crac(2) >0) then
-            !           z_range = (/z_crac(1),z_extr(2)+1/)
-            !       else if (def_pl_crac(2) < 0)
-            !            z_range = (/z_extr(1)-1,z_crac(1)/)
-            !    else
-            !        zrange = (/z_extr(1)-1,z_extr(2)+1/)
-            !   end if
-            !   call eff_section(xy_c,n_c,z_range(1),z_range(2),xy_eff)
-            !
-            !   !Racun momentov (integral y po mnogokotniku) rabim samo i0, i1 in i2
-            !   i0 = area_n(xy_eff,2*n_c,i0,0)
-            !   i1 = area_n(xy_eff,2*n_c,i1,0)
-            !   i2 = area_n(xy_eff,2*n_c,i2,0)
-            !  !i3 = area_n(xy_eff,2*n_c,i3,0)
-            !
-
-            !
-            !end do
-            !
+            f_eq(:) = 0.0_dp
+            jac_eq(:,:) = 0.0_dp
 
 
+            call crac_linmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,e_s,e_c,f_eq,r_s,phi_cr)
+            call crac_linmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac+(/eps_h,0.0_dp,0.0_dp/),z_extr,eps_sh,e_s,e_c,jac_eq(:,1),r_s,phi_cr)
+            call crac_linmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac+(/0.0_dp,kapa_h,0.0_dp/),z_extr,eps_sh,e_s,e_c,jac_eq(:,2),r_s,phi_cr)
+
+
+            jac_eq(:,1) = (jac_eq(:,1)-f_eq)/(eps_h)
+            jac_eq(:,2) = (jac_eq(:,2)-f_eq)/(kapa_h)
+
+            f_eq = f_eq-(/ned,med/)
+
+            dlta_eps(1) = (f_eq(1)*jac_eq(2,2) - f_eq(2)*jac_eq(1,2))
+            dlta_eps(2) = (-f_eq(1)*jac_eq(2,1) + f_eq(2)*jac_eq(1,1))
+            dlta_eps = dlta_eps/(jac_eq(1,1)*jac_eq(2,2) - jac_eq(1,2)*jac_eq(2,1))
+
+
+            def_pl_crac(1:2) = def_pl_crac(1:2) - dlta_eps
+
+
+            end do
+            def_pl = def_pl_crac
 
         else
-            !test za stevilo nicel b**2-4*a*c >,<,= 0
-            !racun ene oz. dveh nicel
-            !z_crac(:) = -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
+
 
 
 
         end if
 
+!                                                            |
+        goto 100  !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+    end block !-> 100
 
 
 
-        call eff_section(xy_c,n_c,-20.0_dp,12.0_dp,xy_eff)
 
-    end block
+110     print*," "
+        print*,"    Račun končan."
+        print*," "
 
 
-    !RAZPOKAN PREREZ
-    block
-        real(dp) :: a_crac = 0, i_crac = 0, z_crac(2), def_pl_crac(3)
 
-        def_pl_crac = def_pl
 
-        do i=1,3
-            ! y koordinata razpok
-            if (eps_sh(3) == 0) then
-                z_crac(:) = -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
-            else
-                z_crac(1) = -(def_pl_crac(2)-eps_sh(2)) + sqrt((def_pl_crac(2)-eps_sh(2))**2 + 4*eps_sh(3)*(def_pl_crac(1)-eps_sh(1)))
-                z_crac(2) = -(def_pl_crac(2)-eps_sh(2)) - sqrt((def_pl_crac(2)-eps_sh(2))**2 + 4*eps_sh(3)*(def_pl_crac(1)-eps_sh(1)))
-                z = -0.5*z/eps_sh(3)
-            end if
 
-        end do
-    end block
+
+
+
 end program
