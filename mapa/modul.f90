@@ -31,13 +31,13 @@ module rutine
     end subroutine
 
     !Zapise potrebne kolicine v datoteko out.js
-    subroutine write_js(xy,n,xys,ns,ds,def_c,def_s,h,an)
+    subroutine write_js(xy,n,xys,ns,ds,def_c,def_s,h,an,ec,fc,es,fs)
         !n-stevilo vozlisc
         !deg-stopnja potence y^deg v integralu
         !a - vhodna količina
         !xy - koordinate vozlisc
         integer :: n,ns,an
-        real(dp) :: xy(:,:),def_c(3),def_s(2),h(2),xys(:,:),ds(:),z,e
+        real(dp) :: xy(:,:),def_c(3),def_s(2),h(2),xys(:,:),ds(:),z,e,ec,es,s,fc,fs
 
         open (unit = 1,file = "mapa/out.js",status = "old")
         write(1,*) "const sec_coor = `"
@@ -62,7 +62,7 @@ module rutine
         do i=1,101
             z = (h(1)*(100-(i-1))+ h(2)*(i-1))/100.0_dp
             e = def_c(1)-def_c(2)*z+def_c(3)*z**2
-            if (an == 2) then
+            if ((an == 2) .or. (an==3)) then
                 e = min(0.0,e)
             end if
             write(1,*) e , z
@@ -76,9 +76,154 @@ module rutine
         end do
         write(1,*) "`;"
 
+        write(1,*) "const sig_c = `"
+        do i=1,101
+            z = (h(1)*(100-(i-1))+ h(2)*(i-1))/100.0_dp
+            e = def_c(1)-def_c(2)*z+def_c(3)*z**2
+            if ((an == 2) .or. (an==3)) then
+                e = min(0.0,e)
+            end if
+
+            if (an == 3) then
+                s = sig_eps_c(fc,e)
+            else
+                s = e*ec
+            end if
+            write(1,*) s , z
+        end do
+        write(1,*) "`;"
+
+        write(1,*) "const sig_s = `"
+        do i=1,ns !101
+            e = (def_s(1)-def_s(2)*xys(2,i))
+
+            if (an == 3) then
+                s =sig_eps_s(fs,e,es)
+            else
+                s = e*es
+            end if
+
+            write(1,*) s,xys(2,i)
+        end do
+        write(1,*) "`;"
 
         close(1)
     end subroutine
+    !SIGMA EPSILON ZVEZA ZA BETON
+    function sig_eps_c(f,eps) result(s)
+        real(dp), intent(in) :: f, eps
+        real(dp) :: s
+
+        if ((eps<=-2.0_dp/1000.0_dp) .and. (eps>=-3.5_dp/1000.0_dp)) then
+            s = -f
+        else if ((eps<=0.0_dp) .and. (eps>=-2.0_dp/1000.0_dp)) then
+            s = -(1.0_dp-(1.0_dp+eps/2.0_dp*1000_dp)**2)*f
+        else
+            s = 0.0_dp
+        end if
+    end function
+
+    !SIGMA EPSILON ZVEZA ZA JEKLO
+    function sig_eps_s(f,eps,es) result(s)
+        real(dp), intent(in) :: f, eps,es
+        real(dp) :: s
+
+        if ((eps>=-f/es) .and. (eps<=f/es)) then
+            s = es*eps
+        else if (eps < 0.0_dp) then
+            s= -f
+        else
+            s = f
+        end if
+
+    end function
+
+
+
+    subroutine crac_nlmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,f_s,e_s,f_c,f_eq,r_s)
+        integer :: n_c,n_s
+        real(dp) :: xy_c(:,:), xy_s(:,:),def_pl_crac(3),z_extr(2),eps_sh(3),e_s,f_c,f_s,f_eq(2),r_s(:),phi_cr,def_plc(3)
+
+        real(dp) :: i0,i1,i2,i3,i4, z_crac(2), xy_eff(2,2*n_c),z_range(2)
+        z_range(:) = 0
+
+        def_plc  =def_pl_crac -eps_sh
+
+        i0 = 0.0_dp
+        i1 = 0.0_dp
+        i2 = 0.0_dp
+        i3 = 0.0_dp
+        i4 = 0.0_dp
+
+        !dolocitev z koordinate razpoke preveri predznak kappa
+        z_crac(1) = min(-(def_plc(1))/(def_plc(2)),(2.0_dp/1000.0_dp-def_plc(1))/(def_plc(2)))
+        z_crac(2) = max(-(def_plc(1))/(def_plc(2)),(2.0_dp/1000.0_dp-def_plc(1))/(def_plc(2)))
+        !z_crac = -(def_pl_crac(1)-eps_sh(1))/(def_pl_crac(2)-eps_sh(2))
+
+
+        !KONSTANTNE
+        if ((z_crac(1) > z_extr(1)) .and. (z_crac(1) < z_extr(2))) then
+            if (def_pl_crac(2)-eps_sh(2) < 0) then
+                z_range = (/z_crac(1),min(z_extr(2)+0.01_dp,z_crac(2))/)
+            else if (def_pl_crac(2)-eps_sh(2) > 0) then
+                z_range = (/z_extr(1)-1.0_dp,z_crac(1)/)
+            end if
+        else if(((z_crac(1) < z_extr(1)) .and.  (def_pl_crac(2)-eps_sh(2) < 0)) .or. (((z_crac(1) > z_extr(2)) .and.  (def_pl_crac(2)-eps_sh(2) > 0)))) then
+                z_range = (/z_extr(1)-1.0_dp,min(z_extr(2)+1.0_dp,z_crac(2))/)
+        else
+            z_range = (/0.0_dp,0.0_dp/)
+
+        end if
+
+
+
+        call eff_section(xy_c,n_c,z_range(1),z_range(2),xy_eff)
+        !Racun momentov (integral y po mnogokotniku) rabim samo i0, i1 in i2
+        call area_n(xy_eff,2*n_c,i0,0)
+        call area_n(xy_eff,2*n_c,i1,1)
+
+        do i=1,n_s
+            f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*pi/4*r_s(i)**2*sig_eps_s(f_s,(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i)),e_s)
+        end do
+        f_eq = f_eq + f_c*(/i0 ,i1/)
+
+
+
+
+        !PARABOLA
+         if ((z_crac(2) > z_extr(1)) .and. (z_crac(2) < z_extr(2))) then
+            if (def_pl_crac(2)-eps_sh(2) < 0) then
+                z_range = (/z_crac(2),z_extr(2)+1.0_dp/)
+            else if (def_pl_crac(2)-eps_sh(2) > 0) then
+                z_range = (/max(z_extr(1)-1.0_dp,z_crac(1)),z_crac(2)/)
+            end if
+        else if(((z_crac(1) < z_extr(1)) .and.  (def_pl_crac(2)-eps_sh(2) < 0)) .or. (((z_crac(1) > z_extr(2)) .and.  (def_pl_crac(2)-eps_sh(2) > 0)))) then
+                z_range = (/max(z_extr(1)-0.01_dp,z_crac(1)),z_extr(2)+1.0_dp/)
+        else
+            z_range = (/0.0_dp,0.0_dp/)
+        end if
+
+        i0 = 0.0_dp
+        i1 = 0.0_dp
+
+
+        call eff_section(xy_c,n_c,z_range(1),z_range(2),xy_eff)
+        !Racun momentov (integral y po mnogokotniku) rabim samo i0, i1 in i2
+        call area_n(xy_eff,2*n_c,i0,0)
+        call area_n(xy_eff,2*n_c,i1,1)
+        call area_n(xy_eff,2*n_c,i2,2)
+        call area_n(xy_eff,2*n_c,i3,3)
+        call area_n(xy_eff,2*n_c,i4,4)
+
+        do i=1,n_s
+            f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*e_s*pi/4*r_s(i)**2*(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i))
+        end do
+        f_eq = f_eq + f_c*(/((1+def_plc(1)/2.0_dp*1000.0_dp)**2-1)*i0-def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i1 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i2 ,((1+def_plc(1)/2.0_dp*1000.0_dp)**2-1)*i1-def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i2 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i3/)
+
+    end subroutine
+
+
+
 
     subroutine crac_linmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,e_s,e_c,f_eq,r_s,phi_cr)
         integer :: n_c,n_s
@@ -123,6 +268,95 @@ module rutine
         f_eq = f_eq + e_c/(1+phi_cr)*(/(i1*(def_pl_crac(2)-eps_sh(2))+i0*(def_pl_crac(1)-eps_sh(1))) ,(i2*(def_pl_crac(2)-eps_sh(2))+i1*(def_pl_crac(1)-eps_sh(1)))/)
 
     end subroutine
+
+
+!   subroutine crac_linmat_nlsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,e_s,e_c,f_eq,r_s,phi_cr)
+!        integer :: n_c,n_s
+!        real(dp) :: xy_c(:,:), xy_s(:,:),def_pl_crac(3),z_extr(2),eps_sh(3),e_s,e_c,f_eq(2),r_s(:),phi_cr,def_c(3)
+!
+!        real(dp) :: i0,i1,i2,i3,z_crac(2), xy_eff(2,2*n_c),z_range(2),z_range2(2)
+!
+!         z_range(:) = 0
+!         z_range2(:) = 0
+!         i0 = 0.0_dp
+!         i1 = 0.0_dp
+!         i2 = 0.0_dp
+!         i3 = 0.0_dp
+!
+!         !dolocitev z koordinate razpoke preveri predznak kappađ
+!         def_c = def_pl_crac-eps_sh
+!
+!         if (def_c(2)**2-4*def_c(1)*def_c(3))<0) then
+!             if (def_c(3) < 0) then
+!                 z_range = (/z_extr(1)-1.0_dp,z_extr(2)+1.0_dp/)
+!             else
+!                 z_range = (/0.0_dp,0.0_dp/)
+!             end
+!
+!
+!             call eff_section(xy_c,n_c,z_range(1),z_range(2),xy_eff)
+!
+!             !Racun momentov (integral y po mnogokotniku) rabim samo i0, i1 in i2
+!             call area_n(xy_eff,2*n_c,i0,0)
+!             call area_n(xy_eff,2*n_c,i1,1)
+!             call area_n(xy_eff,2*n_c,i2,2)
+!             call area_n(xy_eff,2*n_c,i3,3)
+!
+!             do i=1,n_s
+!                 f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*e_s*pi/4*r_s(i)**2*(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i))
+!             end do
+!
+!             f_eq = f_eq + e_c/(1+phi_cr)*(/(i2*def_c(3) +i1*def_c(2)+i0*def_c(1)) ,(i3*def_c(3) +i2*def_c(2)+i1*def_c(1))/)
+!
+!         else
+!             z_crac(1) = (-def_c(2)+sqrt(def_c(2)**2-4*def_c(1)*def_c(3)))/def_c(3)/2.0_dp
+!             z_crac(2) = (-def_c(2)-sqrt(def_c(2)**2-4*def_c(1)*def_c(3)))/def_c(3)/2.0_dp
+!
+!             if ((z_crac(1) > z_extr(1)) .and. (z_crac(1) < z_extr(2))) then
+!                 if (z_crac(2)>=ymax) then
+!                     if (def_c(3)>0) then
+!                         z_range = (/z_extr(1)-1.0_dp,z_crac(1)/)
+!                     else
+!                          z_range = (/z_crac(1),z_extr(2)+1.0_dp/)
+!                     end if
+!                 else if (z_crac(2)<ymax) then
+!                     if (def_c(3)>0) then
+!                         z_range = (/z_crac(1),zcrac(2)/)
+!                     else
+!                          z_range = (/z_extr(1)-1.0_dp,z_crac(1)/)
+!                          z_range2 = (/z_crac(2),z_extr(2)+1.0_dp/)
+!                     end if
+!
+!
+!             !    if (def_pl_crac(2)-eps_sh(2) < 0) then
+!             !        z_range = (/z_crac,z_extr(2)+1.0_dp/)
+!             !    else if (def_pl_crac(2)-eps_sh(2) > 0) then
+!             !        z_range = (/z_extr(1)-1.0_dp,z_crac/)
+!             !    end if
+!             !else if(((z_crac < z_extr(1)) .and.  (def_pl_crac(2)-eps_sh(2) < 0)) .or. (((z_crac > z_extr(2)) .and.  (def_pl_crac(2)-eps_sh(2) > 0)))) then
+!             !        z_range = (/z_extr(1)-1.0_dp,z_extr(2)+1.0_dp/)
+!             !else
+!             !    z_range = (/0.0_dp,0.0_dp/)
+!             !    end if
+!
+!         end if
+!
+!
+!         call eff_section(xy_c,n_c,z_range(1),z_range(2),xy_eff)
+!
+!         !Racun momentov (integral y po mnogokotniku) rabim samo i0, i1 in i2
+!         call area_n(xy_eff,2*n_c,i0,0)
+!         call area_n(xy_eff,2*n_c,i1,1)
+!         call area_n(xy_eff,2*n_c,i2,2)
+!         call area_n(xy_eff,2*n_c,i3,3)
+!
+!         do i=1,n_s
+!             f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*e_s*pi/4*r_s(i)**2*(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i))
+!         end do
+!
+!         f_eq = f_eq + e_c/(1+phi_cr)*(/(i2*def_c(3) +i1*def_c(2)+i0*def_c(1)) ,(i3*def_c(3) +i2*def_c(2)+i1*def_c(1))/)
+!
+!     end subroutine
 
 
 
@@ -208,3 +442,5 @@ module rutine
 
 
 end module
+
+

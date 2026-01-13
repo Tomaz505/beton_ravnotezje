@@ -57,7 +57,7 @@ program main
 
 
 
-    goto (10, 20), analiza
+    goto 10
 
 
 
@@ -70,7 +70,7 @@ program main
 
         def_plc = (def_pl-eps_sh)/(1+phi_cr)
 
-        call write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+        call write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza,e_c,f_c,e_s,f_s)
 
         goto 110
     end block !-> 110
@@ -101,13 +101,13 @@ program main
         def_pl(1:2) = (/c_mat(2,2)*f_vec(1)-c_mat(1,2)*f_vec(2) , -c_mat(1,2)*f_vec(1)+c_mat(1,1)*f_vec(2)/) /(c_mat(1,1)*c_mat(2,2)-c_mat(1,2)**2)
         def_pl(3) = 0
 
-        goto 100 !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+        goto (100,20,30), analiza !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
     end block !-> 100
 
 
 
 
-    !RACUN RAZPOKANEGA PREREZA
+    !RACUN RAZPOKANEGA LINEARNEGA MATERIALA
 20  block
         real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2)
         real(dp) :: i0,i1,i2,i3,eps_h,kapa_h
@@ -119,7 +119,7 @@ program main
         z_extr(1) = minval(xy_c(2,:))
         z_extr(2) = maxval(xy_c(2,:))
 
-        def_pl_crac = (/0.0_dp,0.00001_dp,0.0_dp/)!def_pl
+        def_pl_crac = def_pl
         if (eps_sh(3) == 0) then
 
             do k1 = 1,10
@@ -152,15 +152,90 @@ program main
         else
 
 
-
-
-        end if
-
+!             do k1 = 1,10
+!
+!             f_eq(:) = 0.0_dp
+!             jac_eq(:,:) = 0.0_dp
+!
+!
+!             call crac_linmat_nlsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,e_s,e_c,f_eq,r_s,phi_cr)
+!             call crac_linmat_nlsh(xy_c,n_c,xy_s,n_s,def_pl_crac+(/eps_h,0.0_dp,0.0_dp/),z_extr,eps_sh,e_s,e_c,jac_eq(:,1),r_s,phi_cr)
+!             call crac_linmat_nlsh(xy_c,n_c,xy_s,n_s,def_pl_crac+(/0.0_dp,kapa_h,0.0_dp/),z_extr,eps_sh,e_s,e_c,jac_eq(:,2),r_s,phi_cr)
+!
+!
+!             jac_eq(:,1) = (jac_eq(:,1)-f_eq)/(eps_h)
+!             jac_eq(:,2) = (jac_eq(:,2)-f_eq)/(kapa_h)
+!
+!             f_eq = f_eq-(/ned,med/)
+!
+!             dlta_eps(1) = (f_eq(1)*jac_eq(2,2) - f_eq(2)*jac_eq(1,2))
+!             dlta_eps(2) = (-f_eq(1)*jac_eq(2,1) + f_eq(2)*jac_eq(1,1))
+!             dlta_eps = dlta_eps/(jac_eq(1,1)*jac_eq(2,2) - jac_eq(1,2)*jac_eq(2,1))
+!
+!
+!             def_pl_crac(1:2) = def_pl_crac(1:2) - dlta_eps
+!
+!
+!             end do
+!             def_pl = def_pl_crac
+!
+!
+         end if
 !                                                            |
-        goto 100  !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+        goto (100,100,30),analiza  !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
     end block !-> 100
 
 
+
+    !RACUN RAZPOKANEGA NELINEARNEGA MATERIALA
+30  block
+        real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2)
+        real(dp) :: i0,i1,i2,i3,eps_h,kapa_h
+
+        !korak diference
+        eps_h  = 2.0_dp**(-25.0_dp)
+        kapa_h = 2.0_dp**(-25.0_dp)
+
+        z_extr(1) = minval(xy_c(2,:))
+        z_extr(2) = maxval(xy_c(2,:))
+        def_pl_crac = def_pl
+        !if (eps_sh(3) == 0) then
+
+            do k1 = 1,1
+
+            f_eq(:) = 0.0_dp
+            jac_eq(:,:) = 0.0_dp
+
+            call crac_nlmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,f_s,e_s,f_c,f_eq,r_s)
+            call crac_nlmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac+(/eps_h,0.0_dp,0.0_dp/),z_extr,eps_sh,f_s,e_s,f_c,jac_eq(:,1),r_s)
+            call crac_nlmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac+(/0.0_dp,kapa_h,0.0_dp/),z_extr,eps_sh,f_s,e_s,f_c,jac_eq(:,2),r_s)
+
+
+            jac_eq(:,1) = (jac_eq(:,1)-f_eq)/(eps_h)
+            jac_eq(:,2) = (jac_eq(:,2)-f_eq)/(kapa_h)
+
+            f_eq = f_eq-(/ned,med/)
+
+            dlta_eps(1) = (f_eq(1)*jac_eq(2,2) - f_eq(2)*jac_eq(1,2))
+            dlta_eps(2) = (-f_eq(1)*jac_eq(2,1) + f_eq(2)*jac_eq(1,1))
+            dlta_eps = dlta_eps/(jac_eq(1,1)*jac_eq(2,2) - jac_eq(1,2)*jac_eq(2,1))
+
+
+            def_pl_crac(1:2) = def_pl_crac(1:2) - dlta_eps
+
+
+            end do
+            def_pl = def_pl_crac
+
+            print *, def_pl
+        !end if
+        goto 100
+    end block
+
+
+    !INTERAKCIJSKI DIAGRAM
+40  block
+    end block
 
 
 110     print*," "

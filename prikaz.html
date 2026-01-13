@@ -13,7 +13,7 @@
 Diagram prereza.
 
 
-<div id="chart" style="width:800px;height:800px;"></div>
+<div id="chart" style="width:1000px;height:600px;"></div>
 
 <!--  Skripta za preverjanje sprememb na out.js vsake 0.5s
 python3 -m http.server 8000
@@ -121,6 +121,32 @@ lines_epss.forEach(line => {
     }
 });
 
+const lines_sigc = sig_c.trim().split(/\r?\n/);
+const xData_cs = [];
+const yData_cs = [];
+lines_sigc.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        xData_cs.push(parseFloat(parts[0]));
+        yData_cs.push(parseFloat(parts[1]));
+    }
+});
+
+
+
+
+const lines_sigs = sig_s.trim().split(/\r?\n/);
+const xData_ss = [];
+const yData_ss = [];
+
+lines_sigs.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        xData_ss.push(parseFloat(parts[0]));
+        yData_ss.push(parseFloat(parts[1]));
+    }
+});
+
 
 // Plotly traces
 var trace1 = {
@@ -128,7 +154,7 @@ var trace1 = {
     y: yData,
     mode: 'lines',
     name: 'Prerez',
-    line: { width: 1, color: 'blue' },
+    line: { width: 2, color: 'blue' },
     showlegend:false
 };
 
@@ -169,18 +195,48 @@ var trace4 = {
 
 };
 
+var trace5 = {
+    x: xData_cs,
+    y: yData_cs,
+    xaxis: 'x3',
+    yaxis: 'y3',
+    name: 'σ_c',
+    mode: 'lines',
+    line: { width: 2, color: '#872657' }
+
+};
+
+var trace6 = {
+
+    x: xData_ss,
+    y: yData_ss,
+
+    xaxis:'x3',
+    yaxis: 'y3',
+    name: 'σ_s',
+    mode: 'markers',
+    type: 'scatter',
+    marker: { size: 14 ,color:'#FDBD01',opacity: 1, symbol: 'circle-open-dot'},
+
+};
+
 // Layout
 var layout = {
     xaxis: { title: 'y',scaleratio: 1, tickmode: 'array', tickvals: xData.concat(xData_a),tickangle: -90 },
     yaxis: {range: [Math.min(...yData),Math.max(...yData)], title: 'z',scaleratio: 1, tickmode: 'array', tickvals: yData.concat(yData_a) },
+
     xaxis2: {tickangle: -90,tickformat: ".3e"},
     yaxis2: {range: [Math.min(...yData),Math.max(...yData)],  tickmode: 'array', tickvals: yData.concat(yData_a)  },
+
+    xaxis3: {tickangle: -90},
+    yaxis3: {range: [Math.min(...yData),Math.max(...yData)],  tickmode: 'array', tickvals: yData.concat(yData_a)  },
+
     margin: { t: 20 },
-    grid: {rows:1,columns:2, pattern: 'independent'}
+    grid: {rows:1,columns:3, pattern: 'independent'}
 };
 
 // Render
-Plotly.newPlot('chart', [trace1,trace2,trace3,trace4], layout);
+Plotly.newPlot('chart', [trace1,trace2,trace3,trace4,trace5,trace6], layout);
 </script>
 
 
