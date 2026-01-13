@@ -1,9 +1,5 @@
 ## TODO
- - Razpokan prerez, linearen material
- - Razpokan prerez, nelinearen material
- - Integakcijski diagram
+ - Razpokan prerez, nelinearen material. Zakaj divergira če je $f_c >3$?
  
 ## NADGRADNJA
- - Dvoosni upogib (integracija po mnogokotniku je rešena)
- - Interakcijski diagram (za točko vnešene obtežbe ($N$, $M_y$, $M_z$) $\to$ tri projekcije)
- - Več obtežnih parov
+ - Interakcijski diagram

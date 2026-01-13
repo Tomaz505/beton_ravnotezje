@@ -101,7 +101,9 @@ program main
         def_pl(1:2) = (/c_mat(2,2)*f_vec(1)-c_mat(1,2)*f_vec(2) , -c_mat(1,2)*f_vec(1)+c_mat(1,1)*f_vec(2)/) /(c_mat(1,1)*c_mat(2,2)-c_mat(1,2)**2)
         def_pl(3) = 0
 
-        goto (100,20,30), analiza !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
+
+
+        goto (100,20,20), analiza !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
     end block !-> 100
 
 
@@ -110,11 +112,12 @@ program main
     !RACUN RAZPOKANEGA LINEARNEGA MATERIALA
 20  block
         real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2)
-        real(dp) :: i0,i1,i2,i3,eps_h,kapa_h
+        real(dp) :: i0,i1,i2,i3
+        real(dp), parameter :: eps_h  = 2.0_dp**(-25.0_dp),kapa_h = 2.0_dp**(-25.0_dp)
 
         !korak diference
-        eps_h  = 2.0_dp**(-25.0_dp)
-        kapa_h = 2.0_dp**(-25.0_dp)
+
+
 
         z_extr(1) = minval(xy_c(2,:))
         z_extr(2) = maxval(xy_c(2,:))
@@ -148,6 +151,10 @@ program main
 
             end do
             def_pl = def_pl_crac
+            print *, "      Razpokan - elasticno"
+            print *, "      Ravnotezje (Nrd-Ned,Mrd-Med) => " , f_eq
+            print *, "      Def. ravnina (eps_0, kappa)  => " , def_pl(1:2)
+            print *," "
 
         else
 
@@ -180,7 +187,7 @@ program main
 !             def_pl = def_pl_crac
 !
 !
-         end if
+        end if
 !                                                            |
         goto (100,100,30),analiza  !write_js(xy_c,n_c,xy_s,n_s,r_s,def_plc, def_pl, z_extr,analiza)
     end block !-> 100
@@ -201,7 +208,7 @@ program main
         def_pl_crac = def_pl
         !if (eps_sh(3) == 0) then
 
-            do k1 = 1,1
+            do k1 = 1,200
 
             f_eq(:) = 0.0_dp
             jac_eq(:,:) = 0.0_dp
@@ -226,8 +233,12 @@ program main
 
             end do
             def_pl = def_pl_crac
+            print *, "      Razpokan - plasticen"
+            print *, "      Ravnotezje (Nrd-Ned,Mrd-Med) => " , f_eq
+            print *, "      Def. ravnina (eps_0, kappa)  => " , def_pl(1:2)
+            print *," "
 
-            print *, def_pl
+
         !end if
         goto 100
     end block
@@ -238,9 +249,9 @@ program main
     end block
 
 
-110     print*," "
+110     print *," "
         print*,"    Račun končan."
-        print*," "
+        !print*," "
 
 
 

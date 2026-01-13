@@ -139,12 +139,12 @@ module rutine
     end function
 
 
-
+    !
     subroutine crac_nlmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,f_s,e_s,f_c,f_eq,r_s)
         integer :: n_c,n_s
         real(dp) :: xy_c(:,:), xy_s(:,:),def_pl_crac(3),z_extr(2),eps_sh(3),e_s,f_c,f_s,f_eq(2),r_s(:),phi_cr,def_plc(3)
 
-        real(dp) :: i0,i1,i2,i3,i4, z_crac(2), xy_eff(2,2*n_c),z_range(2)
+        real(dp) :: i0,i1,i2,i3, z_crac(2), xy_eff(2,2*n_c),z_range(2)
         z_range(:) = 0
 
         def_plc  =def_pl_crac -eps_sh
@@ -153,7 +153,6 @@ module rutine
         i1 = 0.0_dp
         i2 = 0.0_dp
         i3 = 0.0_dp
-        i4 = 0.0_dp
 
         !dolocitev z koordinate razpoke preveri predznak kappa
         z_crac(1) = min(-(def_plc(1))/(def_plc(2)),(2.0_dp/1000.0_dp-def_plc(1))/(def_plc(2)))
@@ -185,7 +184,8 @@ module rutine
         do i=1,n_s
             f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*pi/4*r_s(i)**2*sig_eps_s(f_s,(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i)),e_s)
         end do
-        f_eq = f_eq + f_c*(/i0 ,i1/)
+        f_eq = f_eq - f_c*(/i0 ,i1/)
+
 
 
 
@@ -213,18 +213,17 @@ module rutine
         call area_n(xy_eff,2*n_c,i1,1)
         call area_n(xy_eff,2*n_c,i2,2)
         call area_n(xy_eff,2*n_c,i3,3)
-        call area_n(xy_eff,2*n_c,i4,4)
 
         do i=1,n_s
-            f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*e_s*pi/4*r_s(i)**2*(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i))
+            f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*pi/4*r_s(i)**2*sig_eps_s(f_s,(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i)),e_s)
         end do
-        f_eq = f_eq + f_c*(/((1+def_plc(1)/2.0_dp*1000.0_dp)**2-1)*i0-def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i1 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i2 ,((1+def_plc(1)/2.0_dp*1000.0_dp)**2-1)*i1-def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i2 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i3/)
+        f_eq = f_eq  - f_c*(/(1-(1+def_plc(1)/2.0_dp*1000.0_dp)**2)*i0+def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i1 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i2 ,((1+def_plc(1)/2.0_dp*1000.0_dp)**2)*i1+def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i2 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i3/)
 
     end subroutine
 
 
 
-
+    !Linearni material in linearno krčenje
     subroutine crac_linmat_linsh(xy_c,n_c,xy_s,n_s,def_pl_crac,z_extr,eps_sh,e_s,e_c,f_eq,r_s,phi_cr)
         integer :: n_c,n_s
         real(dp) :: xy_c(:,:), xy_s(:,:),def_pl_crac(3),z_extr(2),eps_sh(3),e_s,e_c,f_eq(2),r_s(:),phi_cr
