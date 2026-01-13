@@ -57,7 +57,7 @@ program main
 
 
 
-    goto 10
+    goto (10,10,10,40), analiza
 
 
 
@@ -113,7 +113,7 @@ program main
 20  block
         real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2)
         real(dp) :: i0,i1,i2,i3
-        real(dp), parameter :: eps_h  = 2.0_dp**(-25.0_dp),kapa_h = 2.0_dp**(-25.0_dp)
+        real(dp), parameter :: eps_h  = 2.0_dp**(-29.0_dp),kapa_h = 2.0_dp**(-29.0_dp)
 
         !korak diference
 
@@ -125,7 +125,7 @@ program main
         def_pl_crac = def_pl
         if (eps_sh(3) == 0) then
 
-            do k1 = 1,10
+            do k1 = 1,20
 
             f_eq(:) = 0.0_dp
             jac_eq(:,:) = 0.0_dp
@@ -196,12 +196,9 @@ program main
 
     !RACUN RAZPOKANEGA NELINEARNEGA MATERIALA
 30  block
-        real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2)
-        real(dp) :: i0,i1,i2,i3,eps_h,kapa_h
-
-        !korak diference
-        eps_h  = 2.0_dp**(-25.0_dp)
-        kapa_h = 2.0_dp**(-25.0_dp)
+        real(dp) :: xy_eff(2,2*n_c), z_crack(2), def_pl_crac(3), z_extr(2), jac_eq(2,2), f_eq(2),z_crac(2),dlta_eps(2),dlta_scale
+        real(dp) :: i0,i1,i2,i3
+        real(dp), parameter :: eps_h  = 2.0_dp**(-29.0_dp),kapa_h = 2.0_dp**(-29.0_dp)
 
         z_extr(1) = minval(xy_c(2,:))
         z_extr(2) = maxval(xy_c(2,:))
@@ -230,7 +227,8 @@ program main
 
             def_pl_crac(1:2) = def_pl_crac(1:2) - dlta_eps
 
-
+            !print *, f_eq
+            !print *, def_pl_crac(1:2)
             end do
             def_pl = def_pl_crac
             print *, "      Razpokan - plasticen"
@@ -246,6 +244,58 @@ program main
 
     !INTERAKCIJSKI DIAGRAM
 40  block
+        real(dp) :: mrd(4*30),nrd(4*30),z_extr(2),zs_extr(2),lim_def_pl(2,4*30),eps,c,sh_sub(3),f_eq(2)
+
+
+        z_extr(1)  = minval(xy_c(2,:))
+        z_extr(2)  = maxval(xy_c(2,:))
+        zs_extr(1) = minval(xy_s(2,:))
+        zs_extr(2) = maxval(xy_s(2,:))
+        sh_sub(:) = 0.0_dp
+        c = 0.0_dp
+        eps = 0.0_dp
+
+        !Prerez v tlaku, večji zgoraj
+        do i=1,30
+            eps = ((-0.002_dp)*(29-(i-1))+ (-0.0035_dp)*(i-1))/29.0_dp
+            c = (1.0_dp-2.0_dp/3.5_dp)*(z_extr(2)-z_extr(1))
+            lim_def_pl(2,i) = (eps+0.002_dp)/c
+            lim_def_pl(1,i) = (eps-lim_def_pl(2,i)*z_extr(2))
+        end do
+        !Prerez v upogibu, zgoraj tlak
+        do i=1,30
+            eps  = (0.04_dp)*(i-1)/29.0_dp
+            lim_def_pl(2,30+i) = -(eps+0.0035_dp)/(z_extr(2)-zs_extr(1))
+            lim_def_pl(1,30+i) = -0.0035-lim_def_pl(2,30+i)*z_extr(2)
+        end do
+        !prerez v upogibu, spodaj tlak
+        do i=1,30
+            eps  = (0.04_dp)*(i-1)/29.0_dp
+            lim_def_pl(2,60+i) = (-0.0035_dp-eps)/(z_extr(1)-zs_extr(2))
+            lim_def_pl(1,60+i) = -0.0035_dp-lim_def_pl(2,60+i)*z_extr(1)
+        end do
+        !Prerez v tlaku, spodaj vecji
+        do i=1,30
+            eps = ((-0.002_dp)*(29-(i-1))+ (-0.0035_dp)*(i-1))/29.0_dp
+            c = (1.0_dp-2.0_dp/3.5_dp)*(z_extr(2)-z_extr(1))
+
+            lim_def_pl(2,90+i) = -(eps+0.002_dp)/c
+            lim_def_pl(1,90+i) = eps - lim_def_pl(2,90+i)*z_extr(1)
+        end do
+
+        do i = 1,120
+            print *, lim_def_pl(:,i)
+            f_eq(:) = 0
+            call crac_nlmat_linsh(xy_c,n_c,xy_s,n_s,lim_def_pl(:,i),z_extr,sh_sub,f_s-f_c,e_s,f_c,f_eq,r_s)
+            mrd(i) = f_eq(2)
+            nrd(i) = f_eq(1)
+
+
+        end do
+        print*, nrd
+        print*, mrd
+
+        call write_js_intr(xy_c,n_c,xy_s,n_s,r_s,mrd,nrd,analiza)
     end block
 
 

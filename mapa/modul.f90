@@ -40,6 +40,7 @@ module rutine
         real(dp) :: xy(:,:),def_c(3),def_s(2),h(2),xys(:,:),ds(:),z,e,ec,es,s,fc,fs
 
         open (unit = 1,file = "mapa/out.js",status = "old")
+        write(1,*) "analiza = ", an
         write(1,*) "const sec_coor = `"
         do i=1,n
             write(1,*) xy(:,i)
@@ -109,6 +110,51 @@ module rutine
 
         close(1)
     end subroutine
+
+    subroutine write_js_intr(xy,n,xys,ns,ds,mrd,nrd,an)
+        !n-stevilo vozlisc
+        !deg-stopnja potence y^deg v integralu
+        !a - vhodna količina
+        !xy - koordinate vozlisc
+        integer :: n,ns,an
+        real(dp) :: xy(:,:),xys(:,:),ds(:),mrd(:),nrd(:)
+
+        open (unit = 1,file = "mapa/out.js",status = "old")
+
+        write(1,*) "analiza = `",an,"`;"
+
+        write(1,*) "const sec_coor = `"
+        do i=1,n
+            write(1,*) xy(:,i)
+        end do
+        do i=n-1,1,-1
+            write(1,*) (/ -xy(1,i),xy(2,i)/)
+        end do
+        write(1,*) "`;"
+
+        write(1,*) "const a_coor = `"
+        do i=1,ns
+            write(1,*) xys(:,i) , ds(i)
+        end do
+        do i=ns,1,-1
+            write(1,*) (/ -xys(1,i),xys(2,i),  ds(i)/)
+        end do
+        write(1,*) "`;"
+
+        write(1,*) "const interakcijski = `"
+        do i=1,120
+            write(1,*) nrd(i),mrd(i)
+        end do
+        write(1,*) "`;"
+
+
+        close(1)
+    end subroutine
+
+
+
+
+
     !SIGMA EPSILON ZVEZA ZA BETON
     function sig_eps_c(f,eps) result(s)
         real(dp), intent(in) :: f, eps
@@ -217,7 +263,7 @@ module rutine
         do i=1,n_s
             f_eq =f_eq + (/1.0_dp,-xy_s(2,i)/)*2*pi/4*r_s(i)**2*sig_eps_s(f_s,(def_pl_crac(1)-def_pl_crac(2)*xy_s(2,i)),e_s)
         end do
-        f_eq = f_eq  - f_c*(/(1-(1+def_plc(1)/2.0_dp*1000.0_dp)**2)*i0+def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i1 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i2 ,((1+def_plc(1)/2.0_dp*1000.0_dp)**2)*i1+def_plc(2)*(1+def_plc(1)/2.0_dp*1000.0_dp)*1000.0_dp*i2 + (def_plc(2)/2.0_dp*1000.0_dp)**2*i3/)
+        f_eq = f_eq  - f_c*(/(1-(1+def_plc(1)/0.002_dp)**2)*i0 + def_plc(2)*(1.0_dp+def_plc(1)/0.002_dp)*i1 + (def_plc(2)/0.002_dp)**2*i2 ,(1-(1+def_plc(1)/0.002_dp)**2)*i1+def_plc(2)*(1.0_dp+def_plc(1)/0.002_dp)*i2 + (def_plc(2)/0.002_dp)**2*i3/)
 
     end subroutine
 

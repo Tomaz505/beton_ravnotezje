@@ -13,7 +13,7 @@
 Diagram prereza.
 
 
-<div id="chart" style="width:1000px;height:600px;"></div>
+<div id="chart" style="width:1200px;height:600px;"></div>
 
 <!--  Skripta za preverjanje sprememb na out.js vsake 0.5s
 python3 -m http.server 8000
@@ -66,6 +66,94 @@ setInterval(checkForChanges, 500);
 
 <script>
 // Parse first dataset
+if (analiza == 4){
+
+const lines = sec_coor.trim().split(/\r?\n/);
+const xData = [];
+const yData = [];
+lines.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        xData.push(parseFloat(parts[0]));
+        yData.push(parseFloat(parts[1]));
+    }
+});
+
+const lines_a = a_coor.trim().split(/\r?\n/);
+const xData_a = [];
+const yData_a = [];
+const aData_a = [];
+const aData_af = [];
+lines_a.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        xData_a.push(parseFloat(parts[0]));
+        yData_a.push(parseFloat(parts[1]));
+        aData_a.push(parseFloat(parts[2].slice(0,5)))
+        aData_af.push(6*parseFloat(parts[2].slice(0,5)));
+    }
+});
+
+const lines_intr = interakcijski.trim().split(/\r?\n/);
+const nrd = [];
+const mrd = [];
+lines_intr.forEach(line => {
+    const parts = line.trim().split(/\s+/);
+    if (parts.length === 2) {
+        nrd.push(parseFloat(parts[0]));
+        mrd.push(parseFloat(parts[1]));
+    }
+});
+
+
+
+
+// Plotly traces
+var trace1 = {
+    x: xData,
+    y: yData,
+    mode: 'lines',
+    name: 'Prerez',
+    line: { width: 2, color: 'blue' },
+    showlegend:false
+};
+
+var trace2 = {
+    x: xData_a,
+    y: yData_a,
+    mode: 'markers',
+    type: 'scatter',
+    name: 'd',
+    text: aData_a,
+    marker: { size: aData_af ,color:'orange',  opacity: 0.5},
+    showlegend:false
+
+};
+
+var trace3 = {
+    x: mrd,
+    y: nrd,
+    xaxis: 'x2',
+    yaxis: 'y2',
+    mode: 'markers',
+    type: 'scatter',
+    marker: { size: 6 ,color:'red',opacity: 0.5},
+};
+
+var layout = {
+    xaxis: { title: 'y',scaleratio: 1, tickmode: 'array', tickvals: xData.concat(xData_a),tickangle: -90 },
+    yaxis: {range: [Math.min(...yData),Math.max(...yData)], title: 'z',scaleratio: 1, tickmode: 'array', tickvals: yData.concat(yData_a) },
+
+    margin: { t: 20 },
+    grid: {rows:1,columns:2, pattern: 'independent'}
+};
+
+
+// Render
+Plotly.newPlot('chart', [trace1,trace2,trace3], layout);
+
+
+} else {
 const lines = sec_coor.trim().split(/\r?\n/);
 const xData = [];
 const yData = [];
@@ -237,6 +325,7 @@ var layout = {
 
 // Render
 Plotly.newPlot('chart', [trace1,trace2,trace3,trace4,trace5,trace6], layout);
+}
 </script>
 
 
